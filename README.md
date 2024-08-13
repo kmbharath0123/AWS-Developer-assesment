@@ -1,2 +1,2 @@
-# AWS-Developer-assesment
+# AWS-Developer-assesment-DXC
 DXC test
