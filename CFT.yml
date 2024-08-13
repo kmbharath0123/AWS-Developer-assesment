@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  MyLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::339712947880:policy/Test-assignment-policy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !GetAtt MyLambdaRole.Arn
+      Runtime: python3.9
+      Handler: lambda_function.lambda_handler
+      Code:
+        S3Bucket: codepythontest
+        S3Key: lambda_function.zip
+
+  MyLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref MyLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt MyCloudWatchEventRule.Arn
+
+  #testing the event trigger (This function is not working) cloud formation event trigger is not working
+  MyCloudWatchEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      ScheduleExpression: "rate(10 minutes)"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt MyLambdaFunction.Arn
+          Id: "MyLambdaFunctionTarget"
